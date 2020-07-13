@@ -1,0 +1,92 @@
+@font-face {
+  font-family: tetris;
+  src: url(PixelEmulator.ttf);
+}
+
+
+body{
+	background-color:black;
+	font-family: tetris;
+	color:white;
+}
+
+#title{
+	display:flex;
+	justify-content:center;
+}
+
+#level{
+	display:flex;
+	justify-content:center;
+}
+#game_elements{
+	display:flex;
+	flex-direction:row;
+	justify-content: center;
+}
+#T{
+	outline:#9CFCF0 solid 2px;
+}
+#level_selector {
+	padding-top:20px;
+	display:flex;
+	justify-content: center;
+	margin-bottom:20px;
+}
+#letters{
+	padding-right:10px;
+	display:flex;
+	flex-direction:column;
+	justify-content:space-between;
+}
+#piece_names{
+	padding-right:20px;
+	display:flex;
+	flex-direction:column;
+	justify-content:space-between;
+}
+#piece_selector{
+	padding-right:50px;
+	display:flex;
+	flex-direction:column;
+	justify-content:space-between;
+}
+
+#tools{
+	padding-left:10px;
+	display:flex;
+	flex-direction:column;
+	justify-content:space-between;
+}
+
+#curpiece{
+	image-rendering: pixelated;
+}
+
+#rotate_buttons{
+		display:flex;
+		flex-direction: row;
+		justify-content:space-evenly;
+		image-rendering: pixelated;
+		outline:#9CFCF0 solid 2px;
+		padding: 10px 10px 10px 10px;
+}
+
+#screen{
+	outline:#9CFCF0 solid 2px;
+	display:flex;
+		flex-direction: row;
+		justify-content:center;
+}
+
+#edit{
+}
+
+#erase{
+}
+#grid{
+}
+#credits{
+	padding-top:20px;
+	font-size:10px;
+}
