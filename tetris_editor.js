@@ -434,8 +434,9 @@ for(var i = 1; i<=20; i++){
 }
 });
 document.addEventListener("keypress", function(){
+  console.log(event.keyCode);
   if(free_edit == 0 && erase == 0){
-  if(event.keyCode == 97){
+  if(event.keyCode == 97 || event.keyCode == 65){
     if(hover == 1){ //if hovering over, update piece 
       updatestate(canid,1,1);
     }
@@ -443,7 +444,7 @@ document.addEventListener("keypress", function(){
       rotate(1);
     }
   }
-  if(event.keyCode == 98){
+  if(event.keyCode == 98 || event.keyCode == 66){
     if(hover == 1){ //if hovering over, update piece 
       updatestate(canid,1,2);
     }
@@ -452,7 +453,7 @@ document.addEventListener("keypress", function(){
     }
   }
 
-  if(event.keyCode == 116){ //T
+  if(event.keyCode == 116 || event.keyCode == 84){ //T
     if(hover == 1){
       updatestate(canid,2,0);
     }
@@ -462,7 +463,7 @@ document.addEventListener("keypress", function(){
 
   }
 
-  if(event.keyCode == 106){ //J
+  if(event.keyCode == 106 || event.keyCode == 74){ //J
     if(hover == 1){
       updatestate(canid,2,1);
     }
@@ -471,7 +472,7 @@ document.addEventListener("keypress", function(){
     }
   }
 
-  if(event.keyCode == 122){ //Z
+  if(event.keyCode == 122 || event.keyCode == 90){ //Z
     if(hover == 1){
       updatestate(canid,2,2);
     }
@@ -480,7 +481,7 @@ document.addEventListener("keypress", function(){
     }
   }
 
-  if(event.keyCode == 111){ // O
+  if(event.keyCode == 111 || event.keyCode == 79){ // O
     if(hover == 1){
       updatestate(canid,2,3);
     }
@@ -490,7 +491,7 @@ document.addEventListener("keypress", function(){
 
   }
 
-  if(event.keyCode == 115){ //S
+  if(event.keyCode == 115 || event.keyCode == 83){ //S
     if(hover == 1){
       updatestate(canid,2,4);
     }
@@ -499,7 +500,7 @@ document.addEventListener("keypress", function(){
     }
   }
 
-  if(event.keyCode == 108){ //L 
+  if(event.keyCode == 108 || event.keyCode == 76){ //L 
     if(hover == 1){
       updatestate(canid,2,5);
     }
@@ -508,7 +509,7 @@ document.addEventListener("keypress", function(){
     }
   }
 
-  if(event.keyCode == 105){ //I
+  if(event.keyCode == 105 || event.keyCode == 73){ //I
     if(hover == 1){
       updatestate(canid,2,6);
     }
