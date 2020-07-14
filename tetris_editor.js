@@ -11,6 +11,8 @@ var canid = "";
 var codes = [97,98,116,106,122,111,115,108,105];
 var overlap = 0;
 var rows = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+var fallarray= [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+var remove = 0;
 
 var colors = [
 ["#0058F8","#3CBCFC"],
@@ -409,13 +411,47 @@ document.getElementById("edit").addEventListener("click", function(){
 });
 
 document.getElementById("clear").addEventListener("click", function(){
-for(var i = 20; i>=1; i--){
+  if(rows[1] == 10){
+    remove = 1;
+    for(var j = 1; j<=10; j++){
+      removeblock("canvasblock".concat("_").concat(1).concat("_").concat(j),grid_type); //clear lines
+    }
+  }
+for(var i = 20; i>=2; i--){
   if(rows[i] == 10){
+    remove =1;
+    console.log("clearing row ");
+    for(var k = i-1; k>=1; k--){
+      fallarray[k]+=1;
+    }
     for(var j = 1; j<=10; j++){
       removeblock("canvasblock".concat("_").concat(i).concat("_").concat(j),grid_type); //clear lines
     }
   }
 }
+for(var i = 19; i>=1; i--){ //let the bodies hit the floor
+  console.log((i+fallarray[i]).toString().concat(" -> ").concat(i));
+  if(fallarray[i] == 0){
+    continue;
+  }
+  for(var j = 1; j<=10; j++){
+    var sourcecanvas = document.getElementById("canvasblock".concat("_").concat(i).concat("_").concat(j));
+  var newcanvas = document.getElementById("canvasblock".concat("_").concat(i+fallarray[i]).concat("_").concat(j)).getContext('2d');
+  newcanvas.drawImage(sourcecanvas, 0, 0);
+  var isoccupied = occupied[i][j];
+ removeblock(sourcecanvas.id,grid_type);
+ if(isoccupied){
+  if(!occupied[i+fallarray[i]][j]){ //transfer block
+     rows[i+fallarray[i]] +=1;
+     occupied[i+fallarray[i]][j] = 1;
+  }
+ }
+  }
+}
+for(var i = 0; i<= 20; i++){
+  fallarray[i] = 0;
+}
+remove = 0;
 });
 
 document.getElementById("grid").addEventListener("click", function(){
