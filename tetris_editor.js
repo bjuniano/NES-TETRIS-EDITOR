@@ -420,7 +420,6 @@ document.getElementById("clear").addEventListener("click", function(){
 for(var i = 20; i>=2; i--){
   if(rows[i] == 10){
     remove =1;
-    console.log("clearing row ");
     for(var k = i-1; k>=1; k--){
       fallarray[k]+=1;
     }
@@ -430,7 +429,6 @@ for(var i = 20; i>=2; i--){
   }
 }
 for(var i = 19; i>=1; i--){ //let the bodies hit the floor
-  console.log((i+fallarray[i]).toString().concat(" -> ").concat(i));
   if(fallarray[i] == 0){
     continue;
   }
