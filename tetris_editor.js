@@ -74,17 +74,6 @@ var piece_matrix = [[  //normal orientation
 [[-2,0],[-1,0],[1,0]] //I piece
 ]];
 
-function checkvp(x) {
-  if (x.matches) { // If media query matches
-    console.log("phone");
-  } else {
-   console.log("not phone");
-  }
-}
-
-var vpwidth = window.matchMedia("(max-width: 768px)")
-checkvp(vpwidth);
-vpwidth.addListener(checkvp);
 var occupied = new Array(23);
 for(var i = 0; i<23; i++){
      occupied[i] = new Array(13);
@@ -93,7 +82,6 @@ for(var i = 0; i<23; i++){
 function checkbound(bound){
   var a = parseInt(bound.split("_")[1]);
   var b = parseInt(bound.split("_")[2]);
-  console.log(a.toString().concat("_").concat(b));
   return (a>=1 && b >=1 && a <= 20 && b <= 10);
 }
 
@@ -437,10 +425,8 @@ document.getElementById("grid").addEventListener("click", function(){
   else{
     grid_type = 1;
   }
-  console.log(grid_type);
 for(var i = 1; i<=20; i++){
   for(var j = 1; j<=10; j++){
-    console.log(("canvasblock").concat(i).concat("_").concat(j));
     if(!occupied[i][j]){
       removeblock(("canvasblock_").concat(i).concat("_").concat(j),grid_type);
     }
@@ -448,12 +434,10 @@ for(var i = 1; i<=20; i++){
 }
 });
 document.addEventListener("keypress", function(){
-  console.log(event.keyCode);
   if(free_edit == 0 && erase == 0){
   if(event.keyCode == 97){
     if(hover == 1){ //if hovering over, update piece 
       updatestate(canid,1,1);
-      console.log("yus");
     }
     else{
       rotate(1);
@@ -462,7 +446,6 @@ document.addEventListener("keypress", function(){
   if(event.keyCode == 98){
     if(hover == 1){ //if hovering over, update piece 
       updatestate(canid,1,2);
-      console.log("yus");
     }
     else{
       rotate(2);
