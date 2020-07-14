@@ -25,7 +25,7 @@ body{
 	justify-content: center;
 }
 #T{
-	outline:#9CFCF0 solid 2px;
+	outline:#9CFCF0 solid 3px;
 }
 #level_selector {
 	padding-top:20px;
@@ -52,6 +52,9 @@ body{
 	justify-content:space-between;
 }
 
+#gamescreen{
+outline:#9CFCF0 solid 3px;
+}
 #tools{
 	padding-left:10px;
 	display:flex;
@@ -68,12 +71,12 @@ body{
 		flex-direction: row;
 		justify-content:space-evenly;
 		image-rendering: pixelated;
-		outline:#9CFCF0 solid 2px;
+		outline:#9CFCF0 solid 3px;
 		padding: 10px 10px 10px 10px;
 }
 
 #screen{
-	outline:#9CFCF0 solid 2px;
+	outline:#9CFCF0 solid 3px;
 	display:flex;
 		flex-direction: row;
 		justify-content:center;
@@ -87,6 +90,5 @@ body{
 #grid{
 }
 #credits{
-	padding-top:20px;
 	font-size:10px;
 }
