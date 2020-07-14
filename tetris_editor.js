@@ -5,11 +5,12 @@ var colorset = [0,0,1,0,0,1,0]; //color set used for each piece used = level + c
 var blockstyle = ["0", "1", "1", "0","1", "1","0"];
 var selected_piece = "T";
 var selected_level = "0";
-var curgrid = "";
+var grid_type = 0;
 var hover = 0;
 var canid = "";
-var codes = [97,98,116,106,122,111,115,108,105]
-var overlap = 0
+var codes = [97,98,116,106,122,111,115,108,105];
+var overlap = 0;
+var rows = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 
 var colors = [
 ["#0058F8","#3CBCFC"],
@@ -73,6 +74,17 @@ var piece_matrix = [[  //normal orientation
 [[-2,0],[-1,0],[1,0]] //I piece
 ]];
 
+function checkvp(x) {
+  if (x.matches) { // If media query matches
+    console.log("phone");
+  } else {
+   console.log("not phone");
+  }
+}
+
+var vpwidth = window.matchMedia("(max-width: 768px)")
+checkvp(vpwidth);
+vpwidth.addListener(checkvp);
 var occupied = new Array(23);
 for(var i = 0; i<23; i++){
      occupied[i] = new Array(13);
@@ -81,27 +93,34 @@ for(var i = 0; i<23; i++){
 function checkbound(bound){
   var a = parseInt(bound.split("_")[1]);
   var b = parseInt(bound.split("_")[2]);
-  return (a>=2 && b >=2 && a < 21 && b <= 11);
+  console.log(a.toString().concat("_").concat(b));
+  return (a>=1 && b >=1 && a <= 20 && b <= 10);
 }
 
 function createblock(canvas_id, type,color){
-    var canvas = document.getElementById(canvas_id);
+      var canvas = document.getElementById(canvas_id);
     if(!checkbound(canvas.id)){
   return;
   }
-    canvas.style.outline = "2px solid black";
+
+  if(type!=2){
+    if(!occupied[getcoords(canvas_id)[0]][getcoords(canvas_id)[1]]){
+  rows[getcoords(canvas_id)[0]] +=1;
+}
+  occupied[getcoords(canvas_id)[0]][getcoords(canvas_id)[1]] = 1;
+}    canvas.style.outline = "3px solid black";
     var ctx = canvas.getContext("2d");
     ctx.fillStyle = color;
     ctx.fillRect(0,0,canvas.width, canvas.height);
-    if(type == 2){
-      ctx.fillStyle = "black";
-    ctx.fillRect(0,0,canvas.width, canvas.height);
-    ctx.fillStyle = "white";
-    ctx.fillRect(2,2,12,12);
-    ctx.fillStyle = "black";
-    ctx.fillRect(6,2,4,2);
-    ctx.fillRect(4,4,8,8);
-    ctx.fillRect(6,12,4,2);
+    if(type == 2){ //ghost piece
+    ctx.fillStyle = "white";                          //ctx.fillStyle = "black"; bracket block
+    ctx.fillRect(0,0,canvas.width, canvas.height);    //ctx.fillRect(0,0,canvas.width, canvas.height);
+    ctx.fillStyle = "black";                          //ctx.fillStyle = "white";
+    ctx.fillRect(2,2,12,12);                          //ctx.fillRect(2,2,12,12);
+                                                      //ctx.fillStyle = "black";
+                                                      //ctx.fillRect(6,2,4,2);
+                                                      //ctx.fillRect(4,4,8,8);
+                                                      //ctx.fillRect(6,12,4,2);
     return;
     }
         ctx.fillStyle = "white";
@@ -120,27 +139,32 @@ function createblock(canvas_id, type,color){
 }
 
 
-function removeblock(canvas_id){
+function removeblock(canvas_id,x){ // 1 = grid, 2 = no grid
   var canvas = document.getElementById(canvas_id);
-  if(!checkbound(canvas.id)){
-  return;
-  }
   var h = parseInt(canvas.id.split("_")[1]);
   var r = parseInt(canvas.id.split("_")[2]);
+  if(occupied[h][r] == 1){
+    rows[h]-=1;
+  }
   occupied[h][r] = 0;
   var ctx = canvas.getContext("2d");
+  if(x==0){
   ctx.fillStyle = "#414141";
+  }
+  else{
+  ctx.fillStyle = "#000000";
+  }
   ctx.fillRect(0,0,canvas.width, canvas.height);
-  canvas.style.outline = "2px solid black";
+  canvas.style.outline = "3px solid black";
   return;
 } 
 
 function background(canvas_id){
   var canvas = document.getElementById(canvas_id);
   var ctx = canvas.getContext("2d");
-  ctx.fillStyle = "#000000";
+  ctx.fillStyle = "#FFFFFF";
   ctx.fillRect(0,0,canvas.width, canvas.height);
-  canvas.style.outline = "2px solid black";
+  canvas.style.outline = "3px solid black";
   return;
 } 
 
@@ -158,21 +182,21 @@ function filladjacent(canvas_id,x){
 var newheight = height+piece_matrix[piece_o%4][piece][i][0];
 var newrow =  row+piece_matrix[piece_o%4][piece][i][1];
 newblock = (((block.concat(space)).concat(newheight)).concat(space)).concat(newrow);
-
+if(!checkbound(newblock)){
+  continue;
+}
            if(x == 1){ //mousedown event
-            if(checkbound(newblock)){ //&& !occupied[newheight][newrow]
-               occupied[newheight][newrow] = 1;
+            //&& !occupied[newheight][newrow]
                createblock(("canvas").concat(newblock),blockstyle[piece],colors[level][colorset[piece]]);
-               }
            }
           if(x==2){ //mouseover event
-            if(!occupied[newheight][newrow] && checkbound(newblock)){
+            if(!occupied[newheight][newrow]){
                createblock(("canvas").concat(newblock),2,"gray");
                }
             }
            if(x==3){ //mouseout event
-              if(!occupied[newheight][newrow] && checkbound(newblock)){
-               removeblock(("canvas").concat(newblock));
+              if(!occupied[newheight][newrow]){
+               removeblock(("canvas").concat(newblock),grid_type);
                }
            }
     }
@@ -183,7 +207,7 @@ function selectpiece(p){ // letter of piece
   piece = pieces.indexOf(p);
   document.getElementById(selected_piece).style.outline = " black";
   selected_piece = p;
-  element.style.outline = "#9CFCF0 solid 2px";
+  element.style.outline = "#9CFCF0 solid 3px";
   document.getElementById("curpiece").src = ("images/".concat(p).concat("_").concat(level).concat(".png"));
   document.getElementById("curpiece").style.imageRendering = "pixelated";
   piece_o = 0;
@@ -196,7 +220,7 @@ function selectlevel(l){
   level = l;
   document.getElementById(selected_level).style.outline = "black";
   selected_level = l;
-  element.style.outline = "#9CFCF0 solid 2px";
+  element.style.outline = "#9CFCF0 solid 3px";
   for(var i = 0; i<7; i++){
     document.getElementById(pieces[i].concat("png")).src = "images/".concat(pieces[i]).concat("_").concat(level).concat(".png");
   }
@@ -218,10 +242,10 @@ function rotate(direction){
     }
 }
 
-function updatestate(canvas_id,x,y){ //rotation update
+function updatestate(canvas_id,x,y){ //rotation update x = 1 rotate, x = 2 new piece
   var a = occupied[getcoords(canvas_id)[0]][getcoords(canvas_id)[1]];
   if(!a){
-  removeblock(canvas_id);
+  removeblock(canvas_id,grid_type);
 }
   filladjacent(canvas_id,3);
   if(x==1){ //rotate
@@ -236,7 +260,10 @@ function updatestate(canvas_id,x,y){ //rotation update
   filladjacent(canvas_id,2);
 }
 
-for(var i = 0; i<grid_size+1; i++){ //height
+document.getElementById("gamescreen").style.paddingLeft = "3px";
+document.getElementById("gamescreen").style.paddingTop = "3px";
+
+for(var i = 0; i<grid_size; i++){ //height
 
      var row_number = i+1
      var a  = document.createElement('div');
@@ -247,23 +274,24 @@ for(var i = 0; i<grid_size+1; i++){ //height
 
      document.getElementById("gamescreen").appendChild(a);
 
-  for(var j = 0; j<12; j++){
+  for(var j = 0; j<10; j++){
     var height_number = j+1;
           var name = (((block.concat(space)).concat(row_number)).concat(space)).concat(height_number);
           var a = document.createElement('div');
-          a.id = name;
-          a.style.height = "18px";
-          a.style.width = "18px";
+          a.id = name;             //24px 3px padding for desktop
+          a.style.height = "24px"; //48px 6px padding for mobile
+          a.style.width = "24px";
+          a.style.paddingRight = "3px";
+          a.style.paddingBottom = "3px";
 
           a.onmousemove = function(e) { //free edit mode
               if(e.buttons == 1) {
                if(erase == 1){
-                removeblock(("canvas").concat(this.id));
+                removeblock(("canvas").concat(this.id),grid_type);
                }
                if(free_edit == 1){
                 var block_height = parseInt(this.id.split("_")[1],10);
               var block_row = parseInt(this.id.split("_")[2],10);
-              occupied[block_height][block_row] = 1;
                 createblock(("canvas").concat(this.id),blockstyle[piece],colors[level][colorset[piece]]);
 
                }
@@ -275,7 +303,7 @@ for(var i = 0; i<grid_size+1; i++){ //height
                 return;
               }
               if(erase == 1){
-                removeblock(("canvas").concat(this.id));
+                removeblock(("canvas").concat(this.id),grid_type);
                 return;
               }
               var height = getcoords(this.id)[0];
@@ -283,7 +311,6 @@ for(var i = 0; i<grid_size+1; i++){ //height
               //if(!occupied[height][row]){
                 createblock(("canvas").concat(this.id),blockstyle[piece],colors[level][colorset[piece]]);
               //}
-              occupied[height][row] = 1;
               if(free_edit == 1){
                 return;
               }
@@ -318,16 +345,16 @@ for(var i = 0; i<grid_size+1; i++){ //height
                 return;
               }
               if(!occupied[height][row] ){ 
-                  removeblock(("canvas").concat(this.id));
+                  removeblock(("canvas").concat(this.id),grid_type);
               }
               filladjacent(this.id,3);
          }
 
          occupied[i][j] = 0;
          var canvas = document.createElement("canvas");
-         canvas.width = "18";
-         canvas.height = "18";
-         canvas.style.outline = "2px solid black";
+         canvas.width = "16";
+         canvas.height = "16";
+         canvas.style.outline = "3px solid black";
          canvas.style.width = "100%";
          canvas.style.height = "100%";
          canvas.style.imageRendering = "pixelated";
@@ -335,22 +362,18 @@ for(var i = 0; i<grid_size+1; i++){ //height
          canvas.id = "canvas".concat(a.id);
          a.appendChild(canvas);
           document.getElementById(row_name).appendChild(a);
-                    removeblock(canvas.id);
-          if(j<1 || j >10 || i>=20){
-          background(canvas.id);
-         }
+          removeblock(canvas.id,grid_type);
          
   }
 
 }
 
-               for(var i =0; i < 7; i++){ //set piece
-                document.getElementById(pieces[i]).style.imageRendering = "pixelated";
-     document.getElementById(pieces[i]).addEventListener("click", function(){
-            selectpiece(this.id.toString());
-
-         });
-     }
+for(var i =0; i < 7; i++){ //set piece
+  document.getElementById(pieces[i]).style.imageRendering = "pixelated";
+  document.getElementById(pieces[i]).addEventListener("click", function(){
+    selectpiece(this.id.toString());
+  });
+}
 
 
             for(var i =0; i < 10; i++){ //set level
@@ -378,31 +401,58 @@ for(var i = 0; i<grid_size+1; i++){ //height
     }
     else{
       document.getElementById("edit").style.outline = "black";
-      this.style.outline = "#9CFCF0 solid 2px";
+      this.style.outline = "#9CFCF0 solid 3px";
       erase = 1;
       free_edit = 0;
     }
     });
 
-    document.getElementById("edit").addEventListener("click", function(){
-      if(free_edit == 1){
-        this.style.outline = "black";
-        free_edit = 0;
-      }
-      else{
-        document.getElementById("erase").style.outline = "black";
-        this.style.outline = "#9CFCF0 solid 2px";
-        free_edit = 1;
-        erase = 0;
-      }
-    });
+document.getElementById("edit").addEventListener("click", function(){
+  if(free_edit == 1){
+    this.style.outline = "black";
+    free_edit = 0;
+    }
+  else{
+    document.getElementById("erase").style.outline = "black";
+    this.style.outline = "#9CFCF0 solid 3px";
+    free_edit = 1;
+    erase = 0;
+    }
+});
 
+document.getElementById("clear").addEventListener("click", function(){
+for(var i = 20; i>=1; i--){
+  if(rows[i] == 10){
+    for(var j = 1; j<=10; j++){
+      removeblock("canvasblock".concat("_").concat(i).concat("_").concat(j),grid_type); //clear lines
+    }
+  }
+}
+});
+
+document.getElementById("grid").addEventListener("click", function(){
+  if(grid_type == 1 ){
+    grid_type = 0;
+  }
+  else{
+    grid_type = 1;
+  }
+  console.log(grid_type);
+for(var i = 1; i<=20; i++){
+  for(var j = 1; j<=10; j++){
+    console.log(("canvasblock").concat(i).concat("_").concat(j));
+    if(!occupied[i][j]){
+      removeblock(("canvasblock_").concat(i).concat("_").concat(j),grid_type);
+    }
+  }
+}
+});
 document.addEventListener("keypress", function(){
   console.log(event.keyCode);
   if(free_edit == 0 && erase == 0){
   if(event.keyCode == 97){
     if(hover == 1){ //if hovering over, update piece 
-      updatestate(canid,1);
+      updatestate(canid,1,1);
       console.log("yus");
     }
     else{
