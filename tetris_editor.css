@@ -15,6 +15,12 @@ body{
 	justify-content:center;
 }
 
+#credits{
+	  position:absolute;
+   top:0;
+   left:0;
+	font-size:12px;
+}
 #level{
 	display:flex;
 	justify-content:center;
