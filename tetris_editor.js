@@ -24,7 +24,8 @@ var colors = [
 ["#F83800","#7C7C7C"],
 ["#6844FC","#A80032"],
 ["#0058F8","#F83800"],
-["#F83800","#FCA044"]
+["#F83800","#FCA044"],
+["ghost","ghost"],
 ]
 
 var pieces = ["T","J","Z","O","S","L","I"];
@@ -92,13 +93,19 @@ function createblock(canvas_id, type,color){
     if(!checkbound(canvas.id)){
   return;
   }
-
   if(type!=2){
+    if(occupied[getcoords(canvas_id)[0]][getcoords(canvas_id)[1]]){
+      return;
+    }
     if(!occupied[getcoords(canvas_id)[0]][getcoords(canvas_id)[1]]){
   rows[getcoords(canvas_id)[0]] +=1;
 }
   occupied[getcoords(canvas_id)[0]][getcoords(canvas_id)[1]] = 1;
-}    canvas.style.outline = "3px solid black";
+}   
+  if(color == "ghost"){
+   type = 2;
+  }
+ canvas.style.outline = "3px solid black";
     var ctx = canvas.getContext("2d");
     ctx.fillStyle = color;
     ctx.fillRect(0,0,canvas.width, canvas.height);
@@ -366,7 +373,7 @@ for(var i =0; i < 7; i++){ //set piece
 }
 
 
-            for(var i =0; i < 10; i++){ //set level
+            for(var i =0; i < 11; i++){ //set level
               document.getElementById(i.toString()).style.imageRendering = "pixelated";
      document.getElementById(i.toString()).addEventListener("click", function(){
               selectlevel(this.id.toString());
@@ -420,6 +427,7 @@ document.getElementById("clear").addEventListener("click", function(){
 for(var i = 20; i>=2; i--){
   if(rows[i] == 10){
     remove =1;
+    console.log("clearing row ");
     for(var k = i-1; k>=1; k--){
       fallarray[k]+=1;
     }
@@ -429,6 +437,7 @@ for(var i = 20; i>=2; i--){
   }
 }
 for(var i = 19; i>=1; i--){ //let the bodies hit the floor
+  console.log((i+fallarray[i]).toString().concat(" -> ").concat(i));
   if(fallarray[i] == 0){
     continue;
   }
