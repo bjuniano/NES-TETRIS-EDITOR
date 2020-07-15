@@ -470,7 +470,7 @@ for(var i = 1; i<=20; i++){
 document.addEventListener("keypress", function(){
   console.log(event.keyCode);
   if(free_edit == 0 && erase == 0){
-  if(event.keyCode == 97 || event.keyCode == 65){
+  if(event.keyCode == 49){
     if(hover == 1){ //if hovering over, update piece 
       updatestate(canid,1,1);
     }
@@ -478,7 +478,7 @@ document.addEventListener("keypress", function(){
       rotate(1);
     }
   }
-  if(event.keyCode == 98 || event.keyCode == 66){
+  if(event.keyCode == 50){
     if(hover == 1){ //if hovering over, update piece 
       updatestate(canid,1,2);
     }
