@@ -29,6 +29,7 @@ body{
 	display:flex;
 	flex-direction:row;
 	justify-content: center;
+	background-color:black;
 }
 #T{
 	outline:#9CFCF0 solid 3px;
@@ -60,6 +61,7 @@ body{
 
 #gamescreen{
 outline:#9CFCF0 solid 3px;
+background-color:black;
 }
 #tools{
 	padding-left:10px;
