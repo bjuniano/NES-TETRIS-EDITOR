@@ -13,6 +13,10 @@ var overlap = 0;
 var rows = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 var fallarray= [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 var remove = 0;
+var stack = []; //overall stack
+var boardstate = []; //state after each action
+var blockstate = []; //state of each modified block
+var cleared = 0;
 
 var colors = [
 ["#0058F8","#3CBCFC"],
@@ -88,13 +92,13 @@ function checkbound(bound){
   return (a>=1 && b >=1 && a <= 20 && b <= 10);
 }
 
-function createblock(canvas_id, type,color){
+function createblock(canvas_id, type,color, x){ //1 update boardstate 2 don't update boardstate and replace existing blocks
       var canvas = document.getElementById(canvas_id);
     if(!checkbound(canvas.id)){
   return;
   }
   if(type!=2){
-    if(occupied[getcoords(canvas_id)[0]][getcoords(canvas_id)[1]]){
+    if(occupied[getcoords(canvas_id)[0]][getcoords(canvas_id)[1]] && x == 1){
       return;
     }
     if(!occupied[getcoords(canvas_id)[0]][getcoords(canvas_id)[1]]){
@@ -102,6 +106,15 @@ function createblock(canvas_id, type,color){
 }
   occupied[getcoords(canvas_id)[0]][getcoords(canvas_id)[1]] = 1;
 }   
+if(type!=2){ //not a ghost piece
+  canvas.style.colorstate = color;
+  canvas.style.blockstylestate = type;
+  if(x==1){
+  blockstate.push(canvas_id);
+  boardstate.push(blockstate);
+  blockstate = [];
+}
+}
   if(color == "ghost"){
    type = 2;
   }
@@ -118,8 +131,8 @@ function createblock(canvas_id, type,color){
                                                       //ctx.fillRect(6,2,4,2);
                                                       //ctx.fillRect(4,4,8,8);
                                                       //ctx.fillRect(6,12,4,2);
-    return;
     }
+    else{
         ctx.fillStyle = "white";
     ctx.fillRect(0,0,2,2);
     if(type == 1){
@@ -132,15 +145,27 @@ function createblock(canvas_id, type,color){
         ctx.fillRect(0,0,2,2);
         ctx.fillRect(2,2,12,12);
     }
-    return;
+  }
+  //push blockstate info 
 }
 
 
-function removeblock(canvas_id,x){ // 1 = grid, 2 = no grid
+function removeblock(canvas_id,x,y){ // 0 = grid, 1 = no grid  1 = update boardstate 2 = no update boardstate
+  console.log(y);
   var canvas = document.getElementById(canvas_id);
   var h = parseInt(canvas.id.split("_")[1]);
   var r = parseInt(canvas.id.split("_")[2]);
-  if(occupied[h][r] == 1){
+  if(occupied[h][r] == 1){ //actually removing a block
+    if(y == 1){
+      console.log("adding");
+    blockstate.push(canvas_id);
+    blockstate.push(canvas.style.blockstylestate);
+    blockstate.push(canvas.style.colorstate);
+    boardstate.push(blockstate);
+    blockstate = [];
+    stack.push(boardstate);
+    boardstate = [];
+  }
     rows[h]-=1;
   }
   occupied[h][r] = 0;
@@ -183,17 +208,16 @@ if(!checkbound(newblock)){
   continue;
 }
            if(x == 1){ //mousedown event
-            //&& !occupied[newheight][newrow]
-               createblock(("canvas").concat(newblock),blockstyle[piece],colors[level][colorset[piece]]);
+               createblock(("canvas").concat(newblock),blockstyle[piece],colors[level][colorset[piece]],1);
            }
           if(x==2){ //mouseover event
             if(!occupied[newheight][newrow]){
-               createblock(("canvas").concat(newblock),2,"gray");
+               createblock(("canvas").concat(newblock),2,"gray",1);
                }
             }
            if(x==3){ //mouseout event
               if(!occupied[newheight][newrow]){
-               removeblock(("canvas").concat(newblock),grid_type);
+               removeblock(("canvas").concat(newblock),grid_type,1);
                }
            }
     }
@@ -242,7 +266,7 @@ function rotate(direction){
 function updatestate(canvas_id,x,y){ //rotation update x = 1 rotate, x = 2 new piece
   var a = occupied[getcoords(canvas_id)[0]][getcoords(canvas_id)[1]];
   if(!a){
-  removeblock(canvas_id,grid_type);
+  removeblock(canvas_id,grid_type,2);
 }
   filladjacent(canvas_id,3);
   if(x==1){ //rotate
@@ -252,9 +276,92 @@ function updatestate(canvas_id,x,y){ //rotation update x = 1 rotate, x = 2 new p
     selectpiece(pieces[y]);
   }
   if(!a){
-  createblock(canvas_id,2,"black");
+  createblock(canvas_id,2,"black",1);
   }
   filladjacent(canvas_id,2);
+}
+
+function undo(){
+    if(stack.length != 0){
+      for(var i = 0; i<stack[stack.length-1].length; i++){
+        if(stack[stack.length-1][i].length == 1){ //remove block operation
+        removeblock(stack[stack.length-1][i][0],grid_type,2);
+        }
+        else{ //add block operation
+        createblock(stack[stack.length-1][i][0],stack[stack.length-1][i][1],stack[stack.length-1][i][2],2);
+        }
+      }
+      stack.pop();
+    }
+
+}
+
+function clear(){
+  for(var i = 0; i<=20; i++){
+      if(rows[i] == 10){
+        var cleared = 1;
+      }
+  }
+  if(cleared == 1){
+  for(var x = 1; x<=20; x++){
+    for(var y = 1; y<=10; y++){
+      var canvas = document.getElementById("canvasblock".concat("_").concat(x).concat("_").concat(y));
+      blockstate.push(canvas.id);
+      if(occupied[x][y]){
+      blockstate.push(canvas.style.blockstylestate);
+      blockstate.push(canvas.style.colorstate);
+      boardstate.push(blockstate);
+      blockstate = [];
+      }
+      else{
+        boardstate.push(blockstate);
+      }
+      blockstate = [];
+    }
+  }
+  stack.push(boardstate);
+  boardstate = [];
+}
+cleared = 0;
+  if(rows[1] == 10){
+    remove = 1;
+    for(var j = 1; j<=10; j++){
+      removeblock("canvasblock".concat("_").concat(1).concat("_").concat(j),grid_type,2); //clear lines
+    }
+  }
+for(var i = 20; i>=2; i--){
+  if(rows[i] == 10){
+    remove =1;
+    for(var k = i-1; k>=1; k--){
+      fallarray[k]+=1;
+    }
+    for(var j = 1; j<=10; j++){
+      removeblock("canvasblock".concat("_").concat(i).concat("_").concat(j),grid_type,2); //clear lines
+    }
+  }
+}
+for(var i = 19; i>=1; i--){ //let the bodies hit the floor
+  if(fallarray[i] == 0){
+    continue;
+  }
+  for(var j = 1; j<=10; j++){
+    var sourcecanvas = document.getElementById("canvasblock".concat("_").concat(i).concat("_").concat(j));
+  var newcanvas = document.getElementById("canvasblock".concat("_").concat(i+fallarray[i]).concat("_").concat(j)).getContext('2d');
+  newcanvas.drawImage(sourcecanvas, 0, 0);
+  var isoccupied = occupied[i][j];
+ removeblock(sourcecanvas.id,grid_type,2);
+ if(isoccupied){
+  if(!occupied[i+fallarray[i]][j]){ //transfer block
+     rows[i+fallarray[i]] +=1;
+     occupied[i+fallarray[i]][j] = 1;
+  }
+ }
+  }
+}
+for(var i = 0; i<= 20; i++){
+  fallarray[i] = 0;
+}
+remove = 0;
 }
 
 document.getElementById("gamescreen").style.paddingLeft = "3px";
@@ -284,14 +391,19 @@ for(var i = 0; i<grid_size; i++){ //height
           a.onmousemove = function(e) { //free edit mode
               if(e.buttons == 1) {
                if(erase == 1){
-                removeblock(("canvas").concat(this.id),grid_type);
+                removeblock(("canvas").concat(this.id),grid_type,1);
                }
                if(free_edit == 1){
                 var block_height = parseInt(this.id.split("_")[1],10);
               var block_row = parseInt(this.id.split("_")[2],10);
-                createblock(("canvas").concat(this.id),blockstyle[piece],colors[level][colorset[piece]]);
+              if(!occupied[block_height][block_row]){
+                createblock(("canvas").concat(this.id),blockstyle[piece],colors[level][colorset[piece]],1);
+                stack.push(boardstate);
+                boardstate = [];
+              }
 
                }
+               // stack.push(state) push the old state into the stack
               } 
 
          }
@@ -300,18 +412,23 @@ for(var i = 0; i<grid_size; i++){ //height
                 return;
               }
               if(erase == 1){
-                removeblock(("canvas").concat(this.id),grid_type);
+                removeblock(("canvas").concat(this.id),grid_type,1);
                 return;
               }
               var height = getcoords(this.id)[0];
               var row = getcoords(this.id)[1];
               //if(!occupied[height][row]){
-                createblock(("canvas").concat(this.id),blockstyle[piece],colors[level][colorset[piece]]);
+                createblock(("canvas").concat(this.id),blockstyle[piece],colors[level][colorset[piece]],1);
               //}
               if(free_edit == 1){
+                stack.push(boardstate);
+                boardstate = [];
                 return;
               }
               filladjacent(this.id,1);
+              stack.push(boardstate);
+              boardstate = [];
+               // stack.push(state) push the old state into the stack
          }
 
          a.onmouseover = function() {
@@ -326,7 +443,7 @@ for(var i = 0; i<grid_size; i++){ //height
                 return;
               }
               if(!occupied[height][row]){
-                  createblock(("canvas").concat(this.id),2,"gray");
+                  createblock(("canvas").concat(this.id),2,"gray",1);
               }
               if(free_edit == 1){
                 return;
@@ -342,7 +459,7 @@ for(var i = 0; i<grid_size; i++){ //height
                 return;
               }
               if(!occupied[height][row] ){ 
-                  removeblock(("canvas").concat(this.id),grid_type);
+                  removeblock(("canvas").concat(this.id),grid_type,2);
               }
               filladjacent(this.id,3);
          }
@@ -359,7 +476,7 @@ for(var i = 0; i<grid_size; i++){ //height
          canvas.id = "canvas".concat(a.id);
          a.appendChild(canvas);
           document.getElementById(row_name).appendChild(a);
-          removeblock(canvas.id,grid_type);
+          removeblock(canvas.id,grid_type,2);
          
   }
 
@@ -417,49 +534,11 @@ document.getElementById("edit").addEventListener("click", function(){
     }
 });
 
-document.getElementById("clear").addEventListener("click", function(){
-  if(rows[1] == 10){
-    remove = 1;
-    for(var j = 1; j<=10; j++){
-      removeblock("canvasblock".concat("_").concat(1).concat("_").concat(j),grid_type); //clear lines
-    }
-  }
-for(var i = 20; i>=2; i--){
-  if(rows[i] == 10){
-    remove =1;
-    console.log("clearing row ");
-    for(var k = i-1; k>=1; k--){
-      fallarray[k]+=1;
-    }
-    for(var j = 1; j<=10; j++){
-      removeblock("canvasblock".concat("_").concat(i).concat("_").concat(j),grid_type); //clear lines
-    }
-  }
-}
-for(var i = 19; i>=1; i--){ //let the bodies hit the floor
-  console.log((i+fallarray[i]).toString().concat(" -> ").concat(i));
-  if(fallarray[i] == 0){
-    continue;
-  }
-  for(var j = 1; j<=10; j++){
-    var sourcecanvas = document.getElementById("canvasblock".concat("_").concat(i).concat("_").concat(j));
-  var newcanvas = document.getElementById("canvasblock".concat("_").concat(i+fallarray[i]).concat("_").concat(j)).getContext('2d');
-  newcanvas.drawImage(sourcecanvas, 0, 0);
-  var isoccupied = occupied[i][j];
- removeblock(sourcecanvas.id,grid_type);
- if(isoccupied){
-  if(!occupied[i+fallarray[i]][j]){ //transfer block
-     rows[i+fallarray[i]] +=1;
-     occupied[i+fallarray[i]][j] = 1;
-  }
- }
-  }
-}
-for(var i = 0; i<= 20; i++){
-  fallarray[i] = 0;
-}
-remove = 0;
-});
+
+document.getElementById("clear").addEventListener("click", clear);
+
+
+document.getElementById("undo").addEventListener("click", undo);
 
 document.getElementById("grid").addEventListener("click", function(){
   if(grid_type == 1 ){
@@ -471,14 +550,14 @@ document.getElementById("grid").addEventListener("click", function(){
 for(var i = 1; i<=20; i++){
   for(var j = 1; j<=10; j++){
     if(!occupied[i][j]){
-      removeblock(("canvasblock_").concat(i).concat("_").concat(j),grid_type);
+      removeblock(("canvasblock_").concat(i).concat("_").concat(j),grid_type,2);
     }
   }
 }
 });
 document.addEventListener("keypress", function(){
-  console.log(event.keyCode);
   if(free_edit == 0 && erase == 0){
+    console.log(event.keyCode);
   if(event.keyCode == 49){
     if(hover == 1){ //if hovering over, update piece 
       updatestate(canid,1,1);
@@ -560,5 +639,12 @@ document.addEventListener("keypress", function(){
       selectpiece('I');
     }
   }
+
+}
+if(event.keyCode == 117 || event.keyCode == 85 ){
+  undo();
+}
+if(event.keyCode == 99 || event.keyCode == 67 ){
+  clear();
 }
 });
