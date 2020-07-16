@@ -151,19 +151,19 @@ if(type!=2){ //not a ghost piece
 
 
 function removeblock(canvas_id,x,y){ // 0 = grid, 1 = no grid  1 = update boardstate 2 = no update boardstate
-  console.log(y);
   var canvas = document.getElementById(canvas_id);
   var h = parseInt(canvas.id.split("_")[1]);
   var r = parseInt(canvas.id.split("_")[2]);
   if(occupied[h][r] == 1){ //actually removing a block
     if(y == 1){
-      console.log("adding");
     blockstate.push(canvas_id);
     blockstate.push(canvas.style.blockstylestate);
     blockstate.push(canvas.style.colorstate);
     boardstate.push(blockstate);
     blockstate = [];
-    stack.push(boardstate);
+    if(!boardstate.length == 0){
+   stack.push(boardstate);
+   }
     boardstate = [];
   }
     rows[h]-=1;
@@ -319,7 +319,9 @@ function clear(){
       blockstate = [];
     }
   }
-  stack.push(boardstate);
+  if(!boardstate.length == 0){
+   stack.push(boardstate);
+   }
   boardstate = [];
 }
 cleared = 0;
@@ -364,6 +366,21 @@ for(var i = 0; i<= 20; i++){
 remove = 0;
 }
 
+function grid(){
+    if(grid_type == 1 ){
+    grid_type = 0;
+  }
+  else{
+    grid_type = 1;
+  }
+for(var i = 1; i<=20; i++){
+  for(var j = 1; j<=10; j++){
+    if(!occupied[i][j]){
+      removeblock(("canvasblock_").concat(i).concat("_").concat(j),grid_type,2);
+    }
+  }
+}
+}
 document.getElementById("gamescreen").style.paddingLeft = "3px";
 document.getElementById("gamescreen").style.paddingTop = "3px";
 
@@ -398,7 +415,9 @@ for(var i = 0; i<grid_size; i++){ //height
               var block_row = parseInt(this.id.split("_")[2],10);
               if(!occupied[block_height][block_row]){
                 createblock(("canvas").concat(this.id),blockstyle[piece],colors[level][colorset[piece]],1);
-                stack.push(boardstate);
+                if(!boardstate.length == 0){
+                      stack.push(boardstate);
+                      }
                 boardstate = [];
               }
 
@@ -421,12 +440,16 @@ for(var i = 0; i<grid_size; i++){ //height
                 createblock(("canvas").concat(this.id),blockstyle[piece],colors[level][colorset[piece]],1);
               //}
               if(free_edit == 1){
-                stack.push(boardstate);
+                if(!boardstate.length == 0){
+                  stack.push(boardstate);
+                }
                 boardstate = [];
                 return;
               }
               filladjacent(this.id,1);
-              stack.push(boardstate);
+              if(!boardstate.length == 0){
+                   stack.push(boardstate);
+              }
               boardstate = [];
                // stack.push(state) push the old state into the stack
          }
@@ -540,24 +563,10 @@ document.getElementById("clear").addEventListener("click", clear);
 
 document.getElementById("undo").addEventListener("click", undo);
 
-document.getElementById("grid").addEventListener("click", function(){
-  if(grid_type == 1 ){
-    grid_type = 0;
-  }
-  else{
-    grid_type = 1;
-  }
-for(var i = 1; i<=20; i++){
-  for(var j = 1; j<=10; j++){
-    if(!occupied[i][j]){
-      removeblock(("canvasblock_").concat(i).concat("_").concat(j),grid_type,2);
-    }
-  }
-}
-});
+document.getElementById("grid").addEventListener("click", grid);
+
 document.addEventListener("keypress", function(){
   if(free_edit == 0 && erase == 0){
-    console.log(event.keyCode);
   if(event.keyCode == 49){
     if(hover == 1){ //if hovering over, update piece 
       updatestate(canid,1,1);
@@ -646,5 +655,20 @@ if(event.keyCode == 117 || event.keyCode == 85 ){
 }
 if(event.keyCode == 99 || event.keyCode == 67 ){
   clear();
+}
+
+if(event.keyCode == 103 || event.keyCode == 71 ){
+  grid();
+}
+if(event.keyCode == 102 || event.keyCode == 70){
+  if(hover == 1){
+   for(var i = 1; i<=10; i++){
+    createblock("canvasblock_".concat(getcoords(canid)[0]).concat("_").concat(i),blockstyle[piece],colors[level][colorset[piece]],1);
+   }
+   if(!boardstate.length == 0){
+   stack.push(boardstate);
+   }
+   boardstate = [];
+  }
 }
 });
