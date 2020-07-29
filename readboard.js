@@ -72,6 +72,9 @@ function handleFiles(files) {
                   return function(e) {
                       aImg.onload=function(){
                           ctx.imageSmoothingEnabled = false;
+                         canvas.width = 280;
+                        canvas.height =  550;
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
                           ctx.drawImage(aImg,0,0,280,550);
 
                           var imgData = ctx.getImageData(0,0,280,550);
