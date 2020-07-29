@@ -17,36 +17,10 @@ var canvas=document.getElementById("canvas");
 var ctx=canvas.getContext("2d");
 
 var imageLoader = document.getElementById('imageLoader'); //load files 
-    imageLoader.addEventListener('change', handleImage, false);
+    imageLoader.addEventListener('change', handleUpload, false);
 
 var paste = document.getElementById('paste');
-paste.addEventListener("paste",function(e) {
-  e.preventDefault();
-  e.stopPropagation();
-  var file = e.clipboardData.items[0].getAsFile();
-  var objectUrl = URL.createObjectURL(file);
-  var reader = new FileReader();
-    reader.onload = function(event){
-      var img = new Image();
-        img.onload = function(){
-            getboard(img);
-        }
-        img.src = objectUrl;
-    }
-    reader.readAsDataURL(file); 
-});
-
-function handleImage(e){
-    var reader = new FileReader();
-    reader.onload = function(event){
-        var img = new Image();
-        img.onload = function(){
-            getboard(img);
-        }
-        img.src = event.target.result;
-    }
-    reader.readAsDataURL(e.target.files[0]);     
-}
+paste.addEventListener("paste",handlePaste,false);
 
 function findpoint(imgData){
   width = imgData.width*4;
@@ -188,26 +162,33 @@ function getboard(aImg){
   gameright = 0;
 }
 
-function handleFiles(files) {
-            for (var i=0;i<files.length;i++) {
-              var file = files[i];
-              var imageType = /image.*/;
-              if (!file.type.match(imageType)){continue;}
-              var img = document.createElement("img");
-              img.classList.add("obj");
-              img.file = file;
-              var reader=new FileReader();
-              reader.onload=(function(aImg){
-                  return function(e) {
-                      aImg.onload=function(){
-                          getboard(aImg);
-                      }
-                     aImg.src = e.target.result;
-                  }; 
-              })(img);
-              reader.readAsDataURL(file);      
-            } 
-        } 
+
+function loadImage(rsource){ // image source, reader source
+var reader = new FileReader();
+    reader.onload = function(event){
+      var img = new Image();
+      img.src = event.target.result;
+        img.onload = function(){
+            getboard(img);
+        }
+    }
+    reader.readAsDataURL(rsource); 
+}
+
+function handlePaste(e){
+  e.preventDefault();
+  e.stopPropagation();
+  loadImage(e.clipboardData.items[0].getAsFile());
+}
+
+function handleUpload(){
+   loadImage(document.getElementById("imageLoader").files[0]);    
+}
+
+function handleDrag(files) {
+    loadImage(files[0]);      
+} 
+
 
 var dropZone=document.getElementById("canvas"); //drag image onto canvas
 dropZone.addEventListener("dragenter", handleDragEnter, false);
@@ -220,5 +201,5 @@ function handleDrop(e){
     e.stopPropagation();
     e.preventDefault();
     var url=e.dataTransfer.getData('text/plain');
-        handleFiles(e.dataTransfer.files);
+        handleDrag(e.dataTransfer.files);
 }
