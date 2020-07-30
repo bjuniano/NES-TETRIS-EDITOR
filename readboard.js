@@ -5,16 +5,20 @@ var gametop = 9999;
 var gamebottom = 0;
 var gameleft = 9999;
 var gameright = 0;
+var boardwidth = 280;
+var boardheight = 560;
 
-for(var i = 0; i<550; i++){
+for(var i = 0; i<boardheight; i++){
   visited[i] = [];
-  for(var j = 0; j<280; j++){
+  for(var j = 0; j<boardwidth; j++){
    visited[i][j] = 0;
   }
 }
 
 var canvas=document.getElementById("canvas");
+var canvas2 = document.createElement("canvas");
 var ctx=canvas.getContext("2d");
+var ctx2=canvas2.getContext("2d");
 
 var imageLoader = document.getElementById('imageLoader'); //load files 
     imageLoader.addEventListener('change', handleUpload, false);
@@ -61,7 +65,7 @@ function threshold(pixels, threshold) {
 
 function extendlines(imgData){
   var width = imgData.width*4;
-  for(var j = 0; j<280; j++){
+  for(var j = 0; j<boardwidth; j++){
     var line = true;
     var row = 275;
     var height = j*4;
@@ -75,7 +79,7 @@ function extendlines(imgData){
       }
     }
     if(line == true){ // fill the whole column
-      for(var k = 0; k<550; k++){
+      for(var k = 0; k<boardheight; k++){
         imgData.data[k*width+height]=255;
         imgData.data[k*width+height+1]=255;
         imgData.data[k*width+height+2]=255;
@@ -84,7 +88,7 @@ function extendlines(imgData){
     }
   }
   //extend horizontal line
-  for(var j = 0; j<550; j++){
+  for(var j = 0; j<boardheight; j++){
     var line = true;
     var column = 140*4;
     if(imgData.data[j*width+column] == 255){
@@ -97,7 +101,7 @@ function extendlines(imgData){
       }
       }
       if(line == true){ //fill the whole
-        for(var k = 0; k<280; k++){
+        for(var k = 0; k<boardwidth; k++){
           imgData.data[j*width+k*4]=255;
           imgData.data[j*width+k*4+1]=255;
           imgData.data[j*width+k*4+2]=255;
@@ -134,34 +138,59 @@ function bfs(imgData){
 
 function getboard(aImg){
   ctx.imageSmoothingEnabled = false;
-    canvas.width = 280;
-  canvas.height =  550;
+    canvas.width = boardwidth;
+  canvas.height =  boardheight;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(aImg,0,0,280,550);
-    var imgData = ctx.getImageData(0,0,280,550);
-    var newimgData = ctx.getImageData(0,0,280,550);
+    ctx.drawImage(aImg,0,0,boardwidth,boardheight);
+    var imgData = ctx.getImageData(0,0,boardwidth,boardheight);
+    var newimgData = ctx.getImageData(0,0,boardwidth,boardheight);
     ctx.putImageData(threshold(grayscaleImageData(imgData),400), 0, 0); //filter and process the image
   extendlines(imgData); //extend the vertical  and horizontal lines 
   findpoint(imgData); //find the starting point to bfs
   bfs(imgData); //actually bfs
   ctx.putImageData(newimgData, 0, 0);
-  for(var j = 0; j<550; j++){ //reset array back to unvisited
+  for(var j = 0; j<boardheight; j++){ //reset array back to unvisited
    visited[j] = [];
-  for(var k = 0; k<280; k++){
+  for(var k = 0; k<boardwidth; k++){
    visited[j][k] = 0;
   }
   }
-  newimgData = ctx.getImageData( gameleft,gametop, gameright-gameleft, gamebottom-gametop);
+  newimgData = ctx.getImageData( gameleft,gametop, gameright-gameleft, gamebottom-gametop); 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  canvas.width = gameright-gameleft;
-  canvas.height =  gamebottom-gametop;
-  ctx.putImageData(newimgData, 0, 0);
+  canvas2.width = gameright-gameleft;
+  canvas2.height =  gamebottom-gametop;
+  ctx2.putImageData(newimgData, 0, 0); //paste the cropped data to a filler canvas
+  ctx.drawImage(canvas2, 0, 0,boardwidth,boardheight); //transfer canvas and scale
   gametop = 9999; //reset bounds
   gamebottom = 0;
   gameleft = 9999;
   gameright = 0;
-}
+  var xinterval = canvas.width/10;
+  var yinterval = canvas.height/20;
+  var imgData = ctx.getImageData(0, 0, boardwidth, boardheight);
+  for(var i = 0; i<20; i++){
+    var avgRGB = 0;
+      var count = 0;
+    for(var j = 0; j<10; j++){ //column coordinate, row coordinate
+      var avgRGB = 0;
+      var count = 0;
+      for(var k = yinterval*i; k<yinterval*i+yinterval; k++){
+          for(var l = xinterval*j; l<xinterval*j+xinterval; l++){
+            //imageData.data[((50 * (imageData.width * 4)) + (200 * 4)) + 2];
+            avgRGB += imgData.data[(yinterval*i+(l-xinterval*j)) * (boardwidth * 4) + ((xinterval*j+(k-yinterval*i)) * 4)];
+            avgRGB += imgData.data[(yinterval*i+(l-xinterval*j)) * (boardwidth * 4) + ((xinterval*j+(k-yinterval*i)) * 4)+1];
+            avgRGB += imgData.data[(yinterval*i+(l-xinterval*j)) * (boardwidth * 4) + ((xinterval*j+(k-yinterval*i)) * 4)+2];
+            count+=3;
+          }
+      }
+      avgRGB = avgRGB/count;
+      if(avgRGB>50){
+      console.log(((i+1).toString()).concat(" ").concat((j+1)).concat(": block"));
+    }
+    }
+  }
 
+}
 
 function loadImage(rsource){ // image source, reader source
 var reader = new FileReader();
@@ -183,6 +212,7 @@ function handlePaste(e){
 
 function handleUpload(){
    loadImage(document.getElementById("imageLoader").files[0]);    
+   console.log("hi");
 }
 
 function handleDrag(files) {
