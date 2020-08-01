@@ -100,3 +100,5 @@ background-color:black;
 #credits{
 	font-size:10px;
 }
+
+#loadcanvas{border:1px solid red; margin:0 auto;}
