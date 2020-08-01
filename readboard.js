@@ -5,8 +5,8 @@ var gametop = 9999;
 var gamebottom = 0;
 var gameleft = 9999;
 var gameright = 0;
-var boardwidth = 280;
-var boardheight = 560;
+var boardwidth = 160;
+var boardheight = 320;
 
 for(var i = 0; i<boardheight; i++){
   visited[i] = [];
@@ -28,8 +28,8 @@ paste.addEventListener("paste",handlePaste,false);
 
 function findpoint(imgData){
   width = imgData.width*4;
-   for(var j = 250; j<300; j++){
-      for(var k = 115; k<165; k++){
+   for(var j = ((boardheight/2)-5); j<((boardheight/2)+5); j++){
+      for(var k = ((boardwidth/2)-5); k<((boardwidth/2)+5); k++){
         if (imgData.data[j*width+k*4] == 0){
             imgData.data[j*width+k*4] = 255;
             visited[j][k] = 1;
@@ -67,7 +67,7 @@ function extendlines(imgData){
   var width = imgData.width*4;
   for(var j = 0; j<boardwidth; j++){
     var line = true;
-    var row = 275;
+    var row = boardheight/2;
     var height = j*4;
     if(imgData.data[row * width + height] == 255){
     for(var k = 0; k<20; k++){
@@ -90,7 +90,7 @@ function extendlines(imgData){
   //extend horizontal line
   for(var j = 0; j<boardheight; j++){
     var line = true;
-    var column = 140*4;
+    var column = (boardwidth/2)*4;
     if(imgData.data[j*width+column] == 255){
       for(var k = 0; k<20; k++){ 
       if(imgData.data[j*width + (column + k*4)]!=255){ //check left
@@ -120,10 +120,10 @@ function bfs(imgData){
     for(var j = 0; j<4; j++){
     var newrow = queue[0] + dir[j][0];
     newrow = Math.max(0,newrow);
-    newrow = Math.min(549,newrow);
+    newrow = Math.min(boardheight-1,newrow);
     var newcolumn = queue[1] + dir[j][1];
     newcolumn = Math.max(0,newcolumn);
-    newcolumn = Math.min(279,newcolumn);
+    newcolumn = Math.min(boardwidth-1,newcolumn);
     if(!visited[newrow][newcolumn] && imgData.data[newrow*width+newcolumn*4] == 0){ //check if visited and is black
     imgData.data[newrow*width+newcolumn*4] = 255;
     queue.push(newrow);
@@ -184,12 +184,16 @@ function getboard(aImg){
           }
       }
       avgRGB = avgRGB/count;
+      //fill in board state
       if(avgRGB>50){
-      console.log(((i+1).toString()).concat(" ").concat((j+1)).concat(": block"));
+      console.log(((i+1).toString()).concat(" ").concat((j+1)).concat(": block")); //createblock
     }
+      else{
+      console.log(((i+1).toString()).concat(" ").concat((j+1)).concat(": no block")); //fill in boardstate for empty block
+      }
     }
   }
-
+//push new boardstate
 }
 
 function loadImage(rsource){ // image source, reader source
@@ -212,7 +216,6 @@ function handlePaste(e){
 
 function handleUpload(){
    loadImage(document.getElementById("imageLoader").files[0]);    
-   console.log("hi");
 }
 
 function handleDrag(files) {
