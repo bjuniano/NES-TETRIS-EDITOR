@@ -5,9 +5,6 @@
     <script type="text/javascript" src="html2canvas.js"></script>
     </head>
 <body>
-    <input type = "text" id = "paste" placeholder="paste image here">
-            <input type="file" id="imageLoader" name="imageLoader"/>
-            <canvas id="loadcanvas" width=100 height=100></canvas>
     <div id = "title">
     <h1> NES TETRIS EDITOR </h1>
     </div>
@@ -17,6 +14,8 @@
     <div id = "level">
       Choose Level Color
     </div>
+
+
     <div id = "level_selector">
     <div id = "0"> 
         <img src = "images/0.png">
@@ -57,6 +56,17 @@
     </div>
 
     <div id = "game_elements">
+        <div id = "board">
+            Load Board
+            <input type="file" id="imageLoader" name="imageLoader"/>
+            <div id = "divpaste">
+            <input type = "text" id = "paste" placeholder="paste board image" >
+             </div>
+             <div id = "dragtext">
+             Drag Image ↓
+         </div>
+            <canvas id="loadcanvas" width=150 height=150></canvas>
+    </div>
         <div id = "piece_names">
             <p>T</p>
             <p>J</p>
@@ -114,7 +124,15 @@
         <div id = "line">Fill Line/ F</div>
         <div id = "grid">Grid / G</div>
     </div>
+    <div id = "board2"> <!--dummy div to center the elements lol -->
+            Load Board
+            <input type="file" id="imageLoader" name="imageLoader"/>
+            <div id = "divpaste">
+            <input type = "text" id = "paste" placeholder="paste board image" >
+             </div>
+            <canvas id="loadcanvas" width=150 height=150></canvas>
    </div>
+
         <script src="readboard.js">
     </script>
     
