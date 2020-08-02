@@ -256,28 +256,44 @@ function getboard(aImg){
   var xinterval = loadcanvas.width/10;
   var yinterval = loadcanvas.height/20;
   var imgData = ctx.getImageData(0, 0, boardwidth, boardheight);
+  var imagecolors = []; //average color = average color of non white blocks
   for(var i = 0; i<20; i++){
     for(var j = 0; j<10; j++){ //column coordinate, row coordinate
       var isblock = false;
-      var avgRGB = 0;
+      var avgR = 0;
+      var avgG = 0;
+      var avgB = 0;
       var count = 0;
+      var wcount = 0; //number of white pixels encountered
+      var idata = imgData.data;
       for(var k = yinterval*i; k<yinterval*i+yinterval; k++){
           for(var l = xinterval*j; l<xinterval*j+xinterval; l++){ //check pixels from 2,2 to 4,4 for shine feature
             //imageData.data[((50 * (imageData.width * 4)) + (200 * 4)) + 2];
             var a = (yinterval*i+(l-xinterval*j)); //y coordinate
             var b = (xinterval*j+(k-yinterval*i)); //x coordinate
+            var index = (a * (boardwidth * 4) + b * 4);
             if((l-xinterval*j)>=2 && (l-xinterval*j)<=4 && (k-yinterval*i)>=2 && (k-yinterval*i)<=4){ //check for shine
-                if((imgData.data[a * (boardwidth * 4) + b * 4]+imgData.data[(a * (boardwidth * 4) + b * 4)+1]+imgData.data[(a * (boardwidth * 4) + b * 4)+2])/3>100){
+                if((idata[index]+idata[index+1]+idata[index+2])/3>100){
                   isblock = true;
                 }
             }
-            avgRGB += imgData.data[a * (boardwidth * 4) + b * 4];
-            avgRGB += imgData.data[(a * (boardwidth * 4) + b * 4)+1];
-            avgRGB += imgData.data[(a * (boardwidth * 4) + b * 4)+2];
-            count+=3;
+            if(idata[index] >230 && idata[index+1]>230 && idata[index+1]>230){
+              wcount+=1;
+            //white pixel, ignore
+            }
+            else{
+            avgR += idata[index];
+            avgG += idata[index+1];
+            avgB += idata[index+2];
+            count+=1;
+          }
           }
       }
-      avgRGB = avgRGB/count;
+      count-=40; //don't count the border black pixels which darken the average color
+      avgR = avgR/count;
+      avgG = avgG/count;
+      avgB = avgB/count;
+
       var canvas_id = ("canvasblock".concat("_").concat(i+1).concat("_").concat(j+1)); //fill in board state
       var canvas = document.getElementById(canvas_id);
       blockstate.push(canvas_id);
@@ -290,11 +306,20 @@ function getboard(aImg){
         boardstate.push(blockstate);
       }
       blockstate = [];
-      if(avgRGB>30){
+      if((avgR + avgG + avgB)/3 >30){
         isblock = true;
       }
-      if(isblock){
-        createblock(canvas_id,blockstyle[piece],colors[level][colorset[piece]],2);
+      if(isblock){   
+          avgR = Math.round(avgR).toString(16).padStart(2, '0');
+        avgG = Math.round(avgG).toString(16).padStart(2, '0');
+        avgB = Math.round(avgB).toString(16).padStart(2, '0');
+        var blockcolor = ('#').concat(avgR).concat(avgG).concat(avgB);
+        if(wcount>=10){ //white block
+          createblock(canvas_id,"0",blockcolor,2);
+        }
+        else{
+        createblock(canvas_id,"1",blockcolor,2);
+       }
       console.log(((i+1).toString()).concat(" ").concat((j+1)).concat(": block")); //createblock
     }
       else{
