@@ -335,6 +335,7 @@ function getboard(aImg){
 }
 
 function loadImage(rsource){ // image source, reader source
+  console.log(rsource);
 var reader = new FileReader();
     reader.onload = function(event){
       var img = new Image();
@@ -349,7 +350,12 @@ var reader = new FileReader();
 function handlePaste(e){
   e.preventDefault();
   e.stopPropagation();
-  loadImage(e.clipboardData.items[0].getAsFile());
+    for (var i = 0; i < (event.clipboardData || event.originalEvent.clipboardData).items.length; i++) {
+      if ((event.clipboardData || event.originalEvent.clipboardData).items[i].type.indexOf("image") == 0) {
+        var blob = (event.clipboardData || event.originalEvent.clipboardData).items[i].getAsFile();
+      }
+    }
+  loadImage(blob);
 }
 
 function handleUpload(){
