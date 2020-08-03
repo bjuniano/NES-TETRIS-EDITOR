@@ -277,7 +277,7 @@ function getboard(aImg){
                   isblock = true;
                 }
             }
-            if(idata[index] >230 && idata[index+1]>230 && idata[index+1]>230){
+            if(idata[index]+idata[index+1]+idata[index+1]>600){
               wcount+=1;
             //white pixel, ignore
             }
@@ -314,7 +314,8 @@ function getboard(aImg){
         avgG = Math.round(avgG).toString(16).padStart(2, '0');
         avgB = Math.round(avgB).toString(16).padStart(2, '0');
         var blockcolor = ('#').concat(avgR).concat(avgG).concat(avgB);
-        if(wcount>=10){ //white block
+        console.log(wcount);
+        if(wcount>=30){ //white block
           createblock(canvas_id,"0",blockcolor,2);
         }
         else{
