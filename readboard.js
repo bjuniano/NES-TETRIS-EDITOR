@@ -449,6 +449,8 @@ if(type!=2){ //not a ghost piece
 
 function removeblock(canvas_id,x,y){ // 0 = grid, 1 = no grid  1 = update boardstate 2 = no update boardstate
   var canvas = document.getElementById(canvas_id);
+  canvas.style.blockstylestate = "";
+  canvas.style.colorstate = "";
   var h = parseInt(canvas.id.split("_")[1]);
   var r = parseInt(canvas.id.split("_")[2]);
   if(occupied[h][r] == 1){ //actually removing a block
@@ -645,8 +647,12 @@ for(var i = 19; i>=1; i--){ //let the bodies hit the floor
   }
   for(var j = 1; j<=10; j++){
     var sourcecanvas = document.getElementById("canvasblock".concat("_").concat(i).concat("_").concat(j));
-  var newcanvas = document.getElementById("canvasblock".concat("_").concat(i+fallarray[i]).concat("_").concat(j)).getContext('2d');
-  newcanvas.drawImage(sourcecanvas, 0, 0); //TO DO -----------don't transfer preview pixel on line clear-------
+  var newcanvas = document.getElementById("canvasblock".concat("_").concat(i+fallarray[i]).concat("_").concat(j));
+  newcanvas.style.colorstate = sourcecanvas.style.colorstate;
+  newcanvas.style.blockstylestate = sourcecanvas.style.blockstylestate;
+  sourcecanvas.style.blockstylestate = "";
+  sourcecanvas.style.colorstate = "";
+  newcanvas.getContext('2d').drawImage(sourcecanvas, 0, 0); //TO DO -----------don't transfer preview pixel on line clear-------
   var isoccupied = occupied[i][j];
  removeblock(sourcecanvas.id,grid_type,2);
  if(isoccupied){
