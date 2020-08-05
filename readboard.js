@@ -7,7 +7,7 @@ var selected_piece = "T";
 var selected_level = "0";
 var grid_type = 0;
 var hover = 0;
-var canid = "";
+var canid = ""; //block that is currently being hovered on
 var codes = [97,98,116,106,122,111,115,108,105];
 var overlap = 0;
 var rows = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
@@ -596,6 +596,15 @@ function undo(){
 }
 
 function clear(){
+  if(hover == 1){
+    var height = getcoords(canid)[0];
+    var row = getcoords(canid)[1];
+    if(!occupied[height][row] ){ 
+      console.log("removing");
+                  removeblock(canid,grid_type,2);
+              }
+              filladjacent(canid,3);
+  }
   for(var i = 0; i<=20; i++){
       if(rows[i] == 10){
         var cleared = 1;
@@ -667,6 +676,9 @@ for(var i = 0; i<= 20; i++){
   fallarray[i] = 0;
 }
 remove = 0;
+if(hover == 1){
+  updatestate(canid,2,piece);
+  }
 }
 
 function grid(){
