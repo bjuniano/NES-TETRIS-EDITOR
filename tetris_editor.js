@@ -7,7 +7,7 @@ var selected_piece = "T";
 var selected_level = "0";
 var grid_type = 0;
 var hover = 0;
-var canid = "";
+var canid = ""; //block that is currently being hovered on
 var codes = [97,98,116,106,122,111,115,108,105];
 var overlap = 0;
 var rows = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
@@ -85,6 +85,307 @@ var occupied = new Array(23);
 for(var i = 0; i<23; i++){
      occupied[i] = new Array(13);
 }
+
+var dir = [[0,1],[0,-1],[1,0],[-1,0]];
+var visited = [];
+var queue = [];
+var gametop = 9999;
+var gamebottom = 0;
+var gameleft = 9999;
+var gameright = 0;
+var boardwidth = 160;
+var boardheight = 320;
+
+for(var i = 0; i<boardheight; i++){
+  visited[i] = [];
+  for(var j = 0; j<boardwidth; j++){
+   visited[i][j] = 0;
+  }
+}
+
+var loadcanvas=document.getElementById("loadcanvas");
+var canvas2 = document.createElement("canvas");
+var ctx=loadcanvas.getContext("2d");
+var ctx2=canvas2.getContext("2d");
+
+var imageLoader = document.getElementById('imageLoader'); //load files 
+    imageLoader.addEventListener('change', handleUpload, false);
+
+var paste = document.getElementById('paste');
+paste.addEventListener("paste",handlePaste,false);
+
+function findpoint(imgData){
+  width = imgData.width*4;
+   for(var j = ((boardheight/2)-5); j<((boardheight/2)+5); j++){
+      for(var k = ((boardwidth/2)-5); k<((boardwidth/2)+5); k++){
+        if (imgData.data[j*width+k*4] == 0){
+            imgData.data[j*width+k*4] = 255;
+            visited[j][k] = 1;
+            queue.push(j);
+            queue.push(k);
+            return;
+        }
+    }
+   }
+}
+function grayscaleImageData(imageData) {
+  var data = imageData.data;
+  for (var i = 0; i < data.length; i += 4) {
+    var brightness = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2]
+    data[i] = brightness;
+    data[i + 1] = brightness;
+    data[i + 2] = brightness;
+  }
+  return imageData;
+}
+
+function threshold(pixels, threshold) {
+  var d = pixels.data;
+  for (var i=0; i<d.length; i+=4) {
+    var r = d[i];
+    var g = d[i+1];
+    var b = d[i+2];
+    var v = (r + g + b >= threshold) ? 255 : 0;
+    d[i] = d[i+1] = d[i+2] = v;
+  }
+  return pixels;
+};
+
+function extendlines(imgData){
+  var width = imgData.width*4;
+  for(var j = 0; j<boardwidth; j++){
+    var line = true;
+    var row = boardheight/2;
+    var height = j*4;
+    if(imgData.data[row * width + height] == 255){
+    for(var k = 0; k<20; k++){
+      if(imgData.data[(row-k)*width + height]!=255){ //check top
+        line = false;
+      }
+      if(imgData.data[(row+k)*width + height]!=255){ //check bottom
+        line = false;
+      }
+    }
+    if(line == true){ // fill the whole column
+      for(var k = 0; k<boardheight; k++){
+        imgData.data[k*width+height]=255;
+        imgData.data[k*width+height+1]=255;
+        imgData.data[k*width+height+2]=255;
+      }
+  }
+    }
+  }
+  //extend horizontal line
+  for(var j = 0; j<boardheight; j++){
+    var line = true;
+    var column = (boardwidth/2)*4;
+    if(imgData.data[j*width+column] == 255){
+      for(var k = 0; k<20; k++){ 
+      if(imgData.data[j*width + (column + k*4)]!=255){ //check left
+        line = false;
+      }
+      if(imgData.data[j*width + (column - k*4)]!=255){ //check right
+        line = false;
+      }
+      }
+      if(line == true){ //fill the whole
+        for(var k = 0; k<boardwidth; k++){
+          imgData.data[j*width+k*4]=255;
+          imgData.data[j*width+k*4+1]=255;
+          imgData.data[j*width+k*4+2]=255;
+        }
+      }
+    }
+  }
+}
+
+function bfs(imgData){
+  while(queue.length!=0){
+    gametop = Math.min(gametop,queue[0]);
+    gamebottom = Math.max(gamebottom,queue[0]);
+    gameleft = Math.min(gameleft,queue[1]);
+    gameright = Math.max(gameright,queue[1]);
+    for(var j = 0; j<4; j++){
+    var newrow = queue[0] + dir[j][0];
+    newrow = Math.max(0,newrow);
+    newrow = Math.min(boardheight-1,newrow);
+    var newcolumn = queue[1] + dir[j][1];
+    newcolumn = Math.max(0,newcolumn);
+    newcolumn = Math.min(boardwidth-1,newcolumn);
+    if(!visited[newrow][newcolumn] && imgData.data[newrow*width+newcolumn*4] == 0){ //check if visited and is black
+    imgData.data[newrow*width+newcolumn*4] = 255;
+    queue.push(newrow);
+    queue.push(newcolumn);
+    } 
+    }
+    visited[queue[0]][queue[1]] = 1;
+    queue.shift();
+    queue.shift();
+  }
+}
+
+function getboard(aImg){
+  ctx.imageSmoothingEnabled = false;
+    loadcanvas.width = boardwidth;
+  loadcanvas.height =  boardheight;
+  ctx.clearRect(0, 0, loadcanvas.width, loadcanvas.height);
+    ctx.drawImage(aImg,0,0,boardwidth,boardheight);
+    var imgData = ctx.getImageData(0,0,boardwidth,boardheight);
+    var newimgData = ctx.getImageData(0,0,boardwidth,boardheight);
+    ctx.putImageData(threshold(grayscaleImageData(imgData),400), 0, 0); //filter and process the image
+  extendlines(imgData); //extend the vertical  and horizontal lines 
+  findpoint(imgData); //find the starting point to bfs
+  bfs(imgData); //actually bfs
+  ctx.putImageData(newimgData, 0, 0);
+  for(var j = 0; j<boardheight; j++){ //reset array back to unvisited
+   visited[j] = [];
+  for(var k = 0; k<boardwidth; k++){
+   visited[j][k] = 0;
+  }
+  }
+  newimgData = ctx.getImageData( gameleft,gametop, gameright-gameleft, gamebottom-gametop); 
+  ctx.clearRect(0, 0, loadcanvas.width, loadcanvas.height);
+  canvas2.width = gameright-gameleft;
+  canvas2.height =  gamebottom-gametop;
+  ctx2.putImageData(newimgData, 0, 0); //paste the cropped data to a filler canvas
+  ctx.drawImage(canvas2, 0, 0,boardwidth,boardheight); //transfer canvas and scale
+  gametop = 9999; //reset bounds
+  gamebottom = 0;
+  gameleft = 9999;
+  gameright = 0;
+  var xinterval = loadcanvas.width/10;
+  var yinterval = loadcanvas.height/20;
+  var imgData = ctx.getImageData(0, 0, boardwidth, boardheight);
+  var imagecolors = []; //average color = average color of non white blocks
+  for(var i = 0; i<20; i++){
+    for(var j = 0; j<10; j++){ //column coordinate, row coordinate
+      var isblock = false;
+      var avgR = 0;
+      var avgG = 0;
+      var avgB = 0;
+      var count = 0;
+      var wcount = 0; //number of white pixels encountered
+      var idata = imgData.data;
+      for(var k = yinterval*i; k<yinterval*i+yinterval; k++){
+          for(var l = xinterval*j; l<xinterval*j+xinterval; l++){ //check pixels from 2,2 to 4,4 for shine feature
+            //imageData.data[((50 * (imageData.width * 4)) + (200 * 4)) + 2];
+            var a = (yinterval*i+(l-xinterval*j)); //y coordinate
+            var b = (xinterval*j+(k-yinterval*i)); //x coordinate
+            var index = (a * (boardwidth * 4) + b * 4);
+            if((l-xinterval*j)>=2 && (l-xinterval*j)<=4 && (k-yinterval*i)>=2 && (k-yinterval*i)<=4){ //check for shine
+                if((idata[index]+idata[index+1]+idata[index+2])/3>100){
+                  isblock = true;
+                }
+            }
+            if(idata[index]+idata[index+1]+idata[index+1]>600){
+              wcount+=1;
+            //white pixel, ignore
+            }
+            else{
+            avgR += idata[index];
+            avgG += idata[index+1];
+            avgB += idata[index+2];
+            count+=1;
+          }
+          }
+      }
+      count-=28; //don't count the border black pixels, increases overall pixel brightness 
+      avgR = avgR/count;
+      avgG = avgG/count;
+      avgB = avgB/count;
+
+      var canvas_id = ("canvasblock".concat("_").concat(i+1).concat("_").concat(j+1)); //fill in board state
+      var canvas = document.getElementById(canvas_id);
+      blockstate.push(canvas_id);
+      if(occupied[i+1][j+1]){
+        blockstate.push(canvas.style.blockstylestate);
+        blockstate.push(canvas.style.colorstate);
+        boardstate.push(blockstate);
+      }
+      else{
+        boardstate.push(blockstate);
+      }
+      blockstate = [];
+      if((avgR + avgG + avgB)/3 >60){
+        isblock = true;
+      }
+      if(isblock){   
+          avgR = Math.round(avgR).toString(16).padStart(2, '0');
+          console.log(avgR);
+        avgG = Math.round(avgG).toString(16).padStart(2, '0');
+        console.log(avgG);
+        avgB = Math.round(avgB).toString(16).padStart(2, '0');
+        console.log(avgB);
+        var blockcolor = ('#').concat(avgR).concat(avgG).concat(avgB);
+        console.log(blockcolor);
+        console.log(wcount);
+        if(wcount>=30){ //white block
+          createblock(canvas_id,"0",blockcolor,2);
+        }
+        else{
+        createblock(canvas_id,"1",blockcolor,2);
+       }
+      console.log(((i+1).toString()).concat(" ").concat((j+1)).concat(": block")); //createblock
+    }
+      else{
+      removeblock(canvas_id,grid_type,2) //fill in boardstate for empty block
+      }
+    }
+  }
+  if(!boardstate.length == 0){
+   stack.push(boardstate);
+   }
+    boardstate = [];
+//push new boardstate
+}
+
+function loadImage(rsource){ // image source, reader source
+  console.log(rsource);
+var reader = new FileReader();
+    reader.onload = function(event){
+      var img = new Image();
+      img.src = event.target.result;
+        img.onload = function(){
+            getboard(img);
+        }
+    }
+    reader.readAsDataURL(rsource); 
+}
+
+function handlePaste(e){
+  e.preventDefault();
+  e.stopPropagation();
+    for (var i = 0; i < (event.clipboardData || event.originalEvent.clipboardData).items.length; i++) {
+      if ((event.clipboardData || event.originalEvent.clipboardData).items[i].type.indexOf("image") == 0) {
+        var blob = (event.clipboardData || event.originalEvent.clipboardData).items[i].getAsFile();
+      }
+    }
+  loadImage(blob);
+}
+
+function handleUpload(){
+   loadImage(document.getElementById("imageLoader").files[0]);    
+}
+
+function handleDrag(files) {
+    loadImage(files[0]);      
+} 
+
+
+var dropZone=document.getElementById("loadcanvas"); //drag image onto canvas
+dropZone.addEventListener("dragenter", handleDragEnter, false);
+dropZone.addEventListener("dragover", handleDragOver, false);
+dropZone.addEventListener("drop", handleDrop, false);
+
+function handleDragEnter(e){e.stopPropagation(); e.preventDefault();}
+function handleDragOver(e){e.stopPropagation(); e.preventDefault();}
+function handleDrop(e){
+    e.stopPropagation();
+    e.preventDefault();
+    var url=e.dataTransfer.getData('text/plain');
+        handleDrag(e.dataTransfer.files);
+}
+
 
 function checkbound(bound){
   var a = parseInt(bound.split("_")[1]);
@@ -171,13 +472,15 @@ function removeblock(canvas_id,x,y){ // 0 = grid, 1 = no grid  1 = update boards
   occupied[h][r] = 0;
   var ctx = canvas.getContext("2d");
   if(x==0){
-  ctx.fillStyle = "#414141";
+  ctx.fillStyle = "#282828";
   }
   else{
   ctx.fillStyle = "#000000";
   }
   ctx.fillRect(0,0,canvas.width, canvas.height);
   canvas.style.outline = "3px solid black";
+    canvas.style.blockstylestate = "";
+  canvas.style.colorstate = "";
   return;
 } 
 
@@ -297,6 +600,15 @@ function undo(){
 }
 
 function clear(){
+  if(hover == 1){
+    var height = getcoords(canid)[0];
+    var row = getcoords(canid)[1];
+    if(!occupied[height][row] ){ 
+      console.log("removing");
+                  removeblock(canid,grid_type,2);
+              }
+              filladjacent(canid,3);
+  }
   for(var i = 0; i<=20; i++){
       if(rows[i] == 10){
         var cleared = 1;
@@ -348,8 +660,12 @@ for(var i = 19; i>=1; i--){ //let the bodies hit the floor
   }
   for(var j = 1; j<=10; j++){
     var sourcecanvas = document.getElementById("canvasblock".concat("_").concat(i).concat("_").concat(j));
-  var newcanvas = document.getElementById("canvasblock".concat("_").concat(i+fallarray[i]).concat("_").concat(j)).getContext('2d');
-  newcanvas.drawImage(sourcecanvas, 0, 0);
+  var newcanvas = document.getElementById("canvasblock".concat("_").concat(i+fallarray[i]).concat("_").concat(j));
+  newcanvas.style.colorstate = sourcecanvas.style.colorstate;
+  newcanvas.style.blockstylestate = sourcecanvas.style.blockstylestate;
+  sourcecanvas.style.blockstylestate = "";
+  sourcecanvas.style.colorstate = "";
+  newcanvas.getContext('2d').drawImage(sourcecanvas, 0, 0); //TO DO -----------don't transfer preview pixel on line clear-------
   var isoccupied = occupied[i][j];
  removeblock(sourcecanvas.id,grid_type,2);
  if(isoccupied){
@@ -364,6 +680,9 @@ for(var i = 0; i<= 20; i++){
   fallarray[i] = 0;
 }
 remove = 0;
+if(hover == 1){
+  updatestate(canid,2,piece);
+  }
 }
 
 function grid(){
@@ -381,6 +700,35 @@ for(var i = 1; i<=20; i++){
   }
 }
 }
+
+function delet(){
+  var x = document.getElementById("erase");
+      if(erase == 1){
+      x.style.outline = "black";
+      erase = 0;
+    }
+    else{
+      document.getElementById("edit").style.outline = "black";
+      x.style.outline = "#9CFCF0 solid 3px";
+      erase = 1;
+      free_edit = 0;
+    }
+}
+
+function freeedit(){
+    var x = document.getElementById("edit");
+    if(free_edit == 1){
+    x.style.outline = "black";
+    free_edit = 0;
+    }
+  else{
+    document.getElementById("erase").style.outline = "black";
+    x.style.outline = "#9CFCF0 solid 3px";
+    free_edit = 1;
+    erase = 0;
+    }
+}
+
 document.getElementById("gamescreen").style.paddingLeft = "3px";
 document.getElementById("gamescreen").style.paddingTop = "3px";
 
@@ -431,7 +779,9 @@ for(var i = 0; i<grid_size; i++){ //height
                 return;
               }
               if(erase == 1){
+                console.log("removing");
                 removeblock(("canvas").concat(this.id),grid_type,1);
+                console.log(stack);
                 return;
               }
               var height = getcoords(this.id)[0];
@@ -531,39 +881,16 @@ for(var i =0; i < 7; i++){ //set piece
     rotate(2);
     });
 
-   document.getElementById("erase").addEventListener("click", function(){
-    if(erase == 1){
-      this.style.outline = "black";
-      erase = 0;
-    }
-    else{
-      document.getElementById("edit").style.outline = "black";
-      this.style.outline = "#9CFCF0 solid 3px";
-      erase = 1;
-      free_edit = 0;
-    }
-    });
+document.getElementById("edit").addEventListener("click", freeedit);
 
-document.getElementById("edit").addEventListener("click", function(){
-  if(free_edit == 1){
-    this.style.outline = "black";
-    free_edit = 0;
-    }
-  else{
-    document.getElementById("erase").style.outline = "black";
-    this.style.outline = "#9CFCF0 solid 3px";
-    free_edit = 1;
-    erase = 0;
-    }
-});
-
+document.getElementById("erase").addEventListener("click", delet);
 
 document.getElementById("clear").addEventListener("click", clear);
-
 
 document.getElementById("undo").addEventListener("click", undo);
 
 document.getElementById("grid").addEventListener("click", grid);
+
 
 document.addEventListener("keypress", function(){
   if(free_edit == 0 && erase == 0){
@@ -653,6 +980,13 @@ document.addEventListener("keypress", function(){
 if(event.keyCode == 117 || event.keyCode == 85 ){
   undo();
 }
+if(event.keyCode == 102 || event.keyCode == 70 ){
+  freeedit();
+}
+
+if(event.keyCode == 101 || event.keyCode == 69 ){
+  delet();
+}
 if(event.keyCode == 99 || event.keyCode == 67 ){
   clear();
 }
@@ -660,7 +994,7 @@ if(event.keyCode == 99 || event.keyCode == 67 ){
 if(event.keyCode == 103 || event.keyCode == 71 ){
   grid();
 }
-if(event.keyCode == 102 || event.keyCode == 70){
+if(event.keyCode == 82 || event.keyCode == 114){
   if(hover == 1){
    for(var i = 1; i<=10; i++){
     createblock("canvasblock_".concat(getcoords(canid)[0]).concat("_").concat(i),blockstyle[piece],colors[level][colorset[piece]],1);
