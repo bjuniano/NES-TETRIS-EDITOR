@@ -289,7 +289,7 @@ function getboard(aImg){
           }
           }
       }
-      count-=40; //don't count the border black pixels which darken the average color
+      count-=28; //don't count the border black pixels which darken the average color
       avgR = avgR/count;
       avgG = avgG/count;
       avgB = avgB/count;
@@ -306,14 +306,18 @@ function getboard(aImg){
         boardstate.push(blockstate);
       }
       blockstate = [];
-      if((avgR + avgG + avgB)/3 >30){
+      if((avgR + avgG + avgB)/3 >60){
         isblock = true;
       }
       if(isblock){   
           avgR = Math.round(avgR).toString(16).padStart(2, '0');
+          console.log(avgR);
         avgG = Math.round(avgG).toString(16).padStart(2, '0');
+        console.log(avgG);
         avgB = Math.round(avgB).toString(16).padStart(2, '0');
+        console.log(avgB);
         var blockcolor = ('#').concat(avgR).concat(avgG).concat(avgB);
+        console.log(blockcolor);
         console.log(wcount);
         if(wcount>=30){ //white block
           createblock(canvas_id,"0",blockcolor,2);
@@ -470,7 +474,7 @@ function removeblock(canvas_id,x,y){ // 0 = grid, 1 = no grid  1 = update boards
   occupied[h][r] = 0;
   var ctx = canvas.getContext("2d");
   if(x==0){
-  ctx.fillStyle = "#414141";
+  ctx.fillStyle = "#282828";
   }
   else{
   ctx.fillStyle = "#000000";
