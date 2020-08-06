@@ -1,121 +1,141 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<link rel="stylesheet" href="tetris_editor.css">
-	<script type="text/javascript" src="html2canvas.js"></script>
-	</head>
+    <link rel="stylesheet" href="tetris_editor.css">
+    <script type="text/javascript" src="html2canvas.js"></script>
+    </head>
 <body>
-
-	<div id = "title">
-	<h1> NES TETRIS EDITOR </h1>
+    <div id = "title">
+    <h1> NES TETRIS EDITOR </h1>
     </div>
     <div id = "credits">
-    	made by Bryan (aka grape)
+        made by Bryan (aka grape)
     </div>
     <div id = "level">
       Choose Level Color
     </div>
+
+
     <div id = "level_selector">
-	<div id = "0"> 
-		<img src = "images/0.png">
-	</div>
-	<div id = "1"> 
-		<img src = "images/1.png">
-	</div>
-	<div id = "2"> 
-		<img src = "images/2.png">
-	</div>	
-	<div id = "3"> 
-		<img src = "images/3.png">
-	</div>
-	<div id = "4"> 
-		<img src = "images/4.png">
-	</div>
+    <div id = "0"> 
+        <img src = "images/0.png">
+    </div>
+    <div id = "1"> 
+        <img src = "images/1.png">
+    </div>
+    <div id = "2"> 
+        <img src = "images/2.png">
+    </div>  
+    <div id = "3"> 
+        <img src = "images/3.png">
+    </div>
+    <div id = "4"> 
+        <img src = "images/4.png">
+    </div>
     </div>
 
-	<div id = "level_selector">
-	<div id = "5"> 
-		<img src = "images/5.png">
-	</div>
-	<div id = "6"> 
-		<img src = "images/6.png">
-	</div>
-	<div id = "7"> 
-		<img src = "images/7.png">
-	</div>
-	<div id = "8"> 
-		<img src = "images/8.png">
-	</div>
-	<div id = "9"> 
-		<img src = "images/9.png">
-	</div>
-	<div id  = "10">
-		<img src = "images/10.png">
+    <div id = "level_selector">
+    <div id = "5"> 
+        <img src = "images/5.png">
     </div>
-	</div>
+    <div id = "6"> 
+        <img src = "images/6.png">
+    </div>
+    <div id = "7"> 
+        <img src = "images/7.png">
+    </div>
+    <div id = "8"> 
+        <img src = "images/8.png">
+    </div>
+    <div id = "9"> 
+        <img src = "images/9.png">
+    </div>
+    <div id  = "10">
+        <img src = "images/10.png">
+    </div>
+    </div>
 
     <div id = "game_elements">
-    	<div id = "piece_names">
-    		<p>T</p>
-    		<p>J</p>
-    		<p>Z</p>
-    		<p>O</p>
-    		<p>S</p>
-    		<p>L</p>
-    		<p>I</p>
-    	</div>
-	<div id = "piece_selector">
-	<div id = "T"> 
-		<img id = "Tpng" src = "images/T_0.png">
-	</div>
-	<div id = "J">
-		<img id = "Jpng" src = "images/J_0.png">
-	</div>
-	<div id = "Z">
-		<img id = "Zpng" src = "images/Z_0.png">
-	</div>
-	<div id = "O">
-		<img id = "Opng" src = "images/O_0.png">
-	</div>
-	<div id = "S">
-		<img id = "Spng" src = "images/S_0.png">
-	</div>
-	<div id = "L">
-		<img id = "Lpng" src = "images/L_0.png">
-	</div>
-	<div id = "I">
-		<img id = "Ipng" src = "images/I_0.png">
-	</div>
-		
-	</div>
-	<div id = "gamescreen">
-	</div>
+        <div id = "board">
+            Load Board
+            <input type="file" id="imageLoader" name="imageLoader"/>
+            <div id = "divpaste">
+            <input type = "text" id = "paste" placeholder="paste board image" >
+             </div>
+             <div id = "dragtext">
+             Drag Image ↓
+         </div>
+            <canvas id="loadcanvas" width=150 height=150></canvas>
+    </div>
+        <div id = "piece_names">
+            <p>T</p>
+            <p>J</p>
+            <p>Z</p>
+            <p>O</p>
+            <p>S</p>
+            <p>L</p>
+            <p>I</p>
+        </div>
+    <div id = "piece_selector">
+    <div id = "T"> 
+        <img id = "Tpng" src = "images/T_0.png">
+    </div>
+    <div id = "J">
+        <img id = "Jpng" src = "images/J_0.png">
+    </div>
+    <div id = "Z">
+        <img id = "Zpng" src = "images/Z_0.png">
+    </div>
+    <div id = "O">
+        <img id = "Opng" src = "images/O_0.png">
+    </div>
+    <div id = "S">
+        <img id = "Spng" src = "images/S_0.png">
+    </div>
+    <div id = "L">
+        <img id = "Lpng" src = "images/L_0.png">
+    </div>
+    <div id = "I">
+        <img id = "Ipng" src = "images/I_0.png">
+    </div>
+        
+    </div>
+    <div id = "gamescreen">
+    </div>
 
-	<div id = "tools">
-		<div id = "screen">
+    <div id = "tools">
+        <div id = "screen">
            <img id = "curpiece" src = "images/T_0.png">
-		</div> 
-		<div id = "rotate_buttons">
-			<div id = "rotatecw">
-				1
-				<img src = "images/cw.png">
-			</div>
-			<div id = "rotateccw">
-				<img src = "images/ccw.png">
-				2
-			</div>
-		</div>
-		<div id = "edit">Free Edit  </div>
-		<div id = "erase"> Erase </div>
-		<div id = "clear"> Clear Lines / C</div>
-		<div id = "undo"> Undo / U </div>
-		<div id = "line">Fill Line/ F</div>
-		<div id = "grid">Grid / G</div>
-	</div>
+        </div> 
+        <div id = "rotate_buttons">
+            <div id = "rotatecw">
+                1
+                <img src = "images/cw.png">
+            </div>
+            <div id = "rotateccw">
+                <img src = "images/ccw.png">
+                2
+            </div>
+        </div>
+        <div id = "edit">Free Edit / F </div>
+        <div id = "erase"> Erase / E </div>
+        <div id = "clear"> Clear Lines / C</div>
+        <div id = "undo"> Undo / U </div>
+        <div id = "line">Fill Row/ R</div>
+        <div id = "grid">Grid / G</div>
+    </div>
+    <div id = "board2"> <!--dummy div to center the elements lol -->
+            Load Board
+            <input type="file" id="imageLoader" name="imageLoader"/>
+            <div id = "divpaste">
+            <input type = "text" id = "paste" placeholder="paste board image" >
+             </div>
+            <canvas id="loadcanvas" width=150 height=150></canvas>
    </div>
-   		<script src="tetris_editor.js">
-	</script>
-	
-	</body>
+
+        <script src="tetris_editor.js">
+    </script>
+    
+    </body>
 
 </html>
