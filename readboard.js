@@ -289,7 +289,7 @@ function getboard(aImg){
           }
           }
       }
-      count-=28; //don't count the border black pixels which darken the average color
+      count-=28; //don't count the border black pixels, increases overall pixel brightness 
       avgR = avgR/count;
       avgG = avgG/count;
       avgB = avgB/count;
@@ -453,8 +453,6 @@ if(type!=2){ //not a ghost piece
 
 function removeblock(canvas_id,x,y){ // 0 = grid, 1 = no grid  1 = update boardstate 2 = no update boardstate
   var canvas = document.getElementById(canvas_id);
-  canvas.style.blockstylestate = "";
-  canvas.style.colorstate = "";
   var h = parseInt(canvas.id.split("_")[1]);
   var r = parseInt(canvas.id.split("_")[2]);
   if(occupied[h][r] == 1){ //actually removing a block
@@ -481,6 +479,8 @@ function removeblock(canvas_id,x,y){ // 0 = grid, 1 = no grid  1 = update boards
   }
   ctx.fillRect(0,0,canvas.width, canvas.height);
   canvas.style.outline = "3px solid black";
+    canvas.style.blockstylestate = "";
+  canvas.style.colorstate = "";
   return;
 } 
 
@@ -700,6 +700,35 @@ for(var i = 1; i<=20; i++){
   }
 }
 }
+
+function delet(){
+  var x = document.getElementById("erase");
+      if(erase == 1){
+      x.style.outline = "black";
+      erase = 0;
+    }
+    else{
+      document.getElementById("edit").style.outline = "black";
+      x.style.outline = "#9CFCF0 solid 3px";
+      erase = 1;
+      free_edit = 0;
+    }
+}
+
+function freeedit(){
+    var x = document.getElementById("edit");
+    if(free_edit == 1){
+    x.style.outline = "black";
+    free_edit = 0;
+    }
+  else{
+    document.getElementById("erase").style.outline = "black";
+    x.style.outline = "#9CFCF0 solid 3px";
+    free_edit = 1;
+    erase = 0;
+    }
+}
+
 document.getElementById("gamescreen").style.paddingLeft = "3px";
 document.getElementById("gamescreen").style.paddingTop = "3px";
 
@@ -750,7 +779,9 @@ for(var i = 0; i<grid_size; i++){ //height
                 return;
               }
               if(erase == 1){
+                console.log("removing");
                 removeblock(("canvas").concat(this.id),grid_type,1);
+                console.log(stack);
                 return;
               }
               var height = getcoords(this.id)[0];
@@ -850,39 +881,16 @@ for(var i =0; i < 7; i++){ //set piece
     rotate(2);
     });
 
-   document.getElementById("erase").addEventListener("click", function(){
-    if(erase == 1){
-      this.style.outline = "black";
-      erase = 0;
-    }
-    else{
-      document.getElementById("edit").style.outline = "black";
-      this.style.outline = "#9CFCF0 solid 3px";
-      erase = 1;
-      free_edit = 0;
-    }
-    });
+document.getElementById("edit").addEventListener("click", freeedit);
 
-document.getElementById("edit").addEventListener("click", function(){
-  if(free_edit == 1){
-    this.style.outline = "black";
-    free_edit = 0;
-    }
-  else{
-    document.getElementById("erase").style.outline = "black";
-    this.style.outline = "#9CFCF0 solid 3px";
-    free_edit = 1;
-    erase = 0;
-    }
-});
-
+document.getElementById("erase").addEventListener("click", delet);
 
 document.getElementById("clear").addEventListener("click", clear);
-
 
 document.getElementById("undo").addEventListener("click", undo);
 
 document.getElementById("grid").addEventListener("click", grid);
+
 
 document.addEventListener("keypress", function(){
   if(free_edit == 0 && erase == 0){
@@ -972,6 +980,13 @@ document.addEventListener("keypress", function(){
 if(event.keyCode == 117 || event.keyCode == 85 ){
   undo();
 }
+if(event.keyCode == 102 || event.keyCode == 70 ){
+  freeedit();
+}
+
+if(event.keyCode == 101 || event.keyCode == 69 ){
+  delet();
+}
 if(event.keyCode == 99 || event.keyCode == 67 ){
   clear();
 }
@@ -979,7 +994,7 @@ if(event.keyCode == 99 || event.keyCode == 67 ){
 if(event.keyCode == 103 || event.keyCode == 71 ){
   grid();
 }
-if(event.keyCode == 102 || event.keyCode == 70){
+if(event.keyCode == 82 || event.keyCode == 114){
   if(hover == 1){
    for(var i = 1; i<=10; i++){
     createblock("canvasblock_".concat(getcoords(canid)[0]).concat("_").concat(i),blockstyle[piece],colors[level][colorset[piece]],1);
